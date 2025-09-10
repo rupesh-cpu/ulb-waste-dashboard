@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Citizen Waste Management Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    body { background-color: #e6f2e6; font-family: 'Segoe UI', Arial, sans-serif; }
+    .sidebar { height: 100vh; background: #4caf50; color: white; transition: width 0.3s; overflow-x: hidden; }
+    .sidebar.collapsed { width: 60px; }
+    .sidebar.expanded { width: 250px; }
+    .sidebar .nav-link { color: white; font-weight: 500; white-space: nowrap; overflow: hidden; display: flex; align-items: center; }
+    .sidebar .nav-link:hover { background: #3a9e40; border-radius: 0.5rem; color: white !important; }
+    .sidebar.collapsed .nav-link span.label { display: none; }
+    .sidebar .nav-link i { width: 24px; min-width: 24px; text-align: center; margin-right: 12px; }
+    .sidebar .green-points { margin-top: auto; padding: 1rem; font-weight: 600; font-size: 1rem; border-top: 1px solid #3a9e40; color: #d4edda; }
+    .content { transition: margin-left 0.3s ease; }
+    .progress-bar-custom { background: linear-gradient(90deg, #388e3c, #66bb6a); border-radius: 0.5rem; transition: width 0.4s ease; }
+    .btn-custom { background-color: #4caf50; color: white; transition: background-color 0.3s ease; }
+    .btn-custom:hover { background-color: #3a9e40; }
+    .toast-container { position: fixed; top: 1rem; right: 1rem; z-index: 1055; }
+    .card { border-radius: 0.75rem; box-shadow: 0 4px 10px rgb(76 175 80 / 0.15); margin-bottom: 2rem; }
+    .form-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #2e7d32; }
+    .input-with-icon { padding-left: 2rem; }
+    .feature-row { display: flex; gap: 2rem; justify-content: center; align-items: stretch; margin: 2rem 0 2.2rem 0; flex-wrap: wrap; }
+    .feature-card { background: #fff; border-radius: 18px; box-shadow: 0 2px 12px rgba(44, 62, 80, 0.06); padding: 2rem 1.2rem 1.2rem 1.2rem; text-align: center; transition: box-shadow 0.2s; min-width: 240px; flex: 1 1 240px; max-width: 340px; display: flex; flex-direction: column; align-items: center; }
+    .feature-card:hover { box-shadow: 0 6px 24px rgba(44, 62, 80, 0.11); }
+    .feature-card svg { margin-bottom: 1rem; width: 48px; height: 48px; color: #111; display: block; }
+    .feature-label { font-weight: bold; font-size: 1.17rem; letter-spacing: 0.01em; margin-top: 0.2rem; color: #272e22; }
+    #societyLeaderboard { display: flex; justify-content: space-around; align-items: flex-end; gap: 1rem; min-height: 220px; }
+    .soc-leaderboard-bar { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; }
+    .soc-bar { border-radius: 18px 18px 6px 6px; width: 50px; display: flex; align-items: flex-end; justify-content: center; font-weight: bold; font-size: 1rem; transition: height 0.3s; }
+    #chatBotButton { position: fixed; bottom: 20px; right: 20px; background: #4caf50; color: white; border: none; border-radius: 50%; width: 56px; height: 56px; box-shadow: 0 4px 10px rgb(76 175 80 / 0.4); cursor: pointer; font-size: 28px; display: flex; justify-content: center; align-items: center; z-index: 1100; }
+    #chatBotModal { position: fixed; bottom: 90px; right: 20px; width: 320px; max-width: 90vw; background: white; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.3); display: none; flex-direction: column; z-index: 1101; }
+    #chatBotModal.active { display: flex; }
+    #chatBotHeader { background: #4caf50; color: white; padding: 10px 16px; font-weight: 600; border-top-left-radius: 12px; border-top-right-radius: 12px; display: flex; justify-content: flex-start; align-items: center; gap: 10px; }
+    #chatMessages { flex-grow: 1; padding: 12px; overflow-y: auto; max-height: 300px; font-size: 14px; }
+    .chat-message { margin-bottom: 10px; line-height: 1.3; }
+    .chat-message.bot { color: #3a9e40; }
+    .chat-message.user { text-align: right; color: #555; }
+    #chatInputContainer { display: flex; border-top: 1px solid #ddd; }
+    #chatInput { flex-grow: 1; border: none; padding: 10px 12px; border-bottom-left-radius: 12px; }
+    #chatSendBtn { background: #4caf50; border: none; color: white; cursor: pointer; padding: 0 16px; font-weight: 600; border-bottom-right-radius: 12px; }
+    #chatInput:focus { outline: none; background: #f0fff0; }
+  </style>
+</head>
+<body>
+<div class="d-flex">
+  <!-- Sidebar -->
+  <nav class="sidebar expanded d-flex flex-column p-3" id="sidebar">
+    <button class="btn btn-sm btn-light mb-3 align-self-end" id="toggleSidebar"><i class="fas fa-bars"></i></button>
+    <h4 class="mb-4 sidebar-title"><span class="label">Waste Mgmt</span></h4>
+    <ul class="nav nav-pills flex-column">
+      <li class="nav-item"><a href="#training" class="nav-link"><i class="fas fa-graduation-cap"></i> <span class="label">Training</span></a></li>
+      <li class="nav-item"><a href="#apply" class="nav-link"><i class="fas fa-hand-holding"></i> <span class="label">Apply Bins & Kit</span></a></li>
+      <li class="nav-item"><a href="#upload" class="nav-link"><i class="fas fa-upload"></i> <span class="label">Upload Photo</span></a></li>
+      <li class="nav-item"><a href="#illegal" class="nav-link"><i class="fas fa-exclamation-triangle"></i> <span class="label">Report Dumping</span></a></li>
+      <li class="nav-item"><a href="#purchase" class="nav-link"><i class="fas fa-shopping-cart"></i> <span class="label">Purchase Byproduct</span></a></li>
+      <li class="nav-item"><a href="#leaderboard" class="nav-link"><i class="fas fa-trophy"></i> <span class="label">Leaderboard</span></a></li>
+    </ul>
+    <div class="green-points">Green Points: <span id="greenPoints">0</span></div>
+  </nav>
+
+  <!-- Main content -->
+  <main class="content flex-grow-1 p-4" style="min-height:100vh;">
+    <!-- Feature Cards -->
+    <div class="feature-row">
+      <div class="feature-card"><svg viewBox="0 0 48 48" fill="currentColor"><path d="M18 13V8a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2V13h7v3H11v-3h7zm0 7h3v18h-3V20zm7 0h3v18h-3V20z"/></svg><div class="feature-label">Training & Certification</div></div>
+      <div class="feature-card"><svg viewBox="0 0 48 48" fill="currentColor"><rect x="14" y="8" width="20" height="32" rx="3"/><rect x="17" y="15" width="14" height="2" rx="1" fill="#fff"/><rect x="17" y="21" width="14" height="2" rx="1" fill="#fff"/><rect x="17" y="27" width="10" height="2" rx="1" fill="#fff"/></svg><div class="feature-label">Waste Report</div></div>
+      <div class="feature-card"><svg viewBox="0 0 48 48" fill="currentColor"><circle cx="18" cy="40" r="2"/><circle cx="34" cy="40" r="2"/><path d="M9 12h3l3 20h18l3-12H15"/><rect x="16" y="6" width="18" height="4" rx="2"/></svg><div class="feature-label">Waste Utility Marketplace</div></div>
+      <div class="feature-card"><svg viewBox="0 0 48 48" fill="currentColor"><circle cx="24" cy="20" r="10"/><polygon points="24,34 18,44 24,40 30,44"/><rect x="20" y="6" width="8" height="8" rx="2"/></svg><div class="feature-label">Incentives & Rewards</div></div>
+    </div>
+
+    <!-- Sections -->
+    <section id="training" class="card p-4"><h2>Training & Certification</h2>
+      <p>Learn about waste segregation.</p>
+      <div class="progress mb-3"><div id="trainingProgressBar" class="progress-bar progress-bar-custom" style="width:0%">0%</div></div>
+      <button class="btn btn-custom" id="startTrainingBtn">Start Training</button>
+    </section>
+
+    <section id="apply" class="card p-4">
+      <h2>Apply for Bins & Kit</h2>
+      <form id="applyForm" novalidate>
+        <div class="mb-3 position-relative">
+          <label for="nameInput" class="form-label">Name</label>
+          <input type="text" id="nameInput" class="form-control input-with-icon" required>
+          <i class="fas fa-user form-icon"></i>
+        </div>
+        <div class="mb-3 position-relative">
+          <label for="addressInput" class="form-label">Address</label>
+          <input type="text" id="addressInput" class="form-control input-with-icon" required>
+          <i class="fas fa-home form-icon"></i>
+        </div>
+        <button class="btn btn-custom" type="submit">Apply Now</button>
+      </form>
+    </section>
+
+    <section id="upload" class="card p-4">
+      <h2>Upload Bin Photo</h2>
+      <form id="uploadForm" novalidate>
+        <input type="file" id="binPhoto" accept="image/*" class="form-control mb-2" required>
+        <div id="photoPreviewContainer" style="display:none;">
+          <img id="photoPreview" src="#" alt="Preview" class="img-thumbnail" style="max-width:200px;">
+        </div>
+        <button class="btn btn-custom mt-2" type="submit">Upload</button>
+      </form>
+    </section>
+
+    <section id="illegal" class="card p-4">
+      <h2>Report Illegal Dumping</h2>
+      <form id="reportForm" novalidate>
+        <div class="mb-3"><label>Location</label><input type="text" class="form-control" required></div>
+        <div class="mb-3"><label>Description</label><textarea class="form-control" rows="3" required></textarea></div>
+        <div class="mb-3">
+          <label>Upload Photo</label>
+          <input type="file" id="illegalPhoto" class="form-control" accept="image/*">
+          <div id="illegalPhotoPreviewContainer" style="display:none; margin-top:8px;">
+            <img id="illegalPhotoPreview" src="#" alt="Photo Preview" class="img-thumbnail" style="max-width:200px;">
+          </div>
+        </div>
+        <button class="btn btn-custom" type="submit">Submit Report</button>
+      </form>
+    </section>
+
+    <section id="purchase" class="card p-4">
+      <h2>Purchase Waste Byproducts</h2>
+      <form id="purchaseForm" novalidate>
+        <div class="mb-3"><label>Select Product</label>
+          <select class="form-select" id="productSelect" required>
+            <option value="">--Choose--</option>
+            <option value="Compost">Compost</option>
+            <option value="Recycled Plastic">Recycled Plastic</option>
+            <option value="Bio-gas">Bio-gas</option>
+          </select>
+        </div>
+        <div class="mb-3"><label>Quantity</label><input type="number" id="quantityInput" class="form-control" min="1" required></div>
+        <button class="btn btn-custom" type="submit">Purchase</button>
+      </form>
+    </section>
+
+    <section id="leaderboard" class="card p-4">
+      <h2>Leaderboard</h2>
+      <div id="societyLeaderboard"></div>
+    </section>
+  </main>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<button id="chatBotButton">💬</button>
+<div id="chatBotModal">
+  <div id="chatBotHeader"><i class="fas fa-robot"></i> WasteBot <button id="closeChatBot">&times;</button></div>
+  <div id="chatMessages"></div>
+  <div id="chatInputContainer"><input type="text" id="chatInput" placeholder="Type a message"><button id="chatSendBtn">Send</button></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', ()=>{
+  const sidebar = document.getElementById('sidebar');
+  document.getElementById('toggleSidebar').addEventListener('click',()=>{sidebar.classList.toggle('collapsed');sidebar.classList.toggle('expanded');});
+
+  function showToast(msg,type='info'){
+    const toastContainer=document.getElementById('toastContainer');
+    const toast=document.createElement('div');
+    toast.className=`toast align-items-center text-bg-${type} border-0 show mb-2`;
+    toast.innerHTML=`<div class="d-flex"><div class="toast-body">${msg}</div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>`;
+    toastContainer.appendChild(toast);
+    setTimeout(()=>toast.remove(),3000);
+  }
+
+  let trainingProgress=0;
+  document.getElementById('startTrainingBtn').addEventListener('click',()=>{
+    if(confirm("Start training?")){
+      const bar=document.getElementById('trainingProgressBar');
+      let interval=setInterval(()=>{
+        trainingProgress+=10;
+        if(trainingProgress>100){trainingProgress=100;clearInterval(interval);showToast('Training completed!','success');}
+        bar.style.width=trainingProgress+'%'; bar.textContent=trainingProgress+'%';
+      },500);
+    }
+  });
+
+  document.getElementById('applyForm').addEventListener('submit',e=>{
+    e.preventDefault();if(!e.target.checkValidity()){e.target.reportValidity();return;}
+    showToast('Application submitted successfully!','success'); e.target.reset();
+  });
+
+  const binPhoto=document.getElementById('binPhoto'), photoPreviewContainer=document.getElementById('photoPreviewContainer'), photoPreview=document.getElementById('photoPreview');
+  binPhoto.addEventListener('change',()=>{
+    if(binPhoto.files && binPhoto.files[0]){
+      photoPreview.src=URL.createObjectURL(binPhoto.files[0]);
+      photoPreviewContainer.style.display='block';
+    }
+  });
+  document.getElementById('uploadForm').addEventListener('submit',e=>{e.preventDefault();showToast('Photo uploaded!','success');e.target.reset();photoPreviewContainer.style.display='none';});
+
+  const illegalPhotoInput = document.getElementById('illegalPhoto');
+  const illegalPhotoPreview = document.getElementById('illegalPhotoPreview');
+  const illegalPhotoPreviewContainer = document.getElementById('illegalPhotoPreviewContainer');
+  illegalPhotoInput.addEventListener('change', () => {
+    if(illegalPhotoInput.files && illegalPhotoInput.files[0]){
+      illegalPhotoPreview.src = URL.createObjectURL(illegalPhotoInput.files[0]);
+      illegalPhotoPreviewContainer.style.display = 'block';
+    } else {
+      illegalPhotoPreviewContainer.style.display = 'none';
+      illegalPhotoPreview.src = '#';
+    }
+  });
+  const reportForm = document.getElementById('reportForm');
+  reportForm.addEventListener('submit', e => {
+    e.preventDefault();
+    showToast('Report submitted with photo!','success');
+    reportForm.reset();
+    illegalPhotoPreviewContainer.style.display = 'none';
+  });
+
+  // Updated Purchase Section with Payment
+  const purchaseForm = document.getElementById('purchaseForm');
+  purchaseForm.addEventListener('submit', e => {
+    e.preventDefault();
+    if(!purchaseForm.checkValidity()){ purchaseForm.reportValidity(); return; }
+
+    if(confirm("Confirm your purchase?")) {
+      const product = document.getElementById('productSelect').value;
+      const quantity = parseInt(document.getElementById('quantityInput').value);
+
+      let pricePerUnit = 0;
+      switch(product) {
+        case 'Compost': pricePerUnit = 50; break;
+        case 'Recycled Plastic': pricePerUnit = 100; break;
+        case 'Bio-gas': pricePerUnit = 80; break;
+      }
+
+      const totalPrice = pricePerUnit * quantity;
+      showToast(`You purchased ${quantity} of ${product}`,'success');
+
+      const paymentMethod = prompt(`Total Price: ₹${totalPrice}\nEnter payment method (Cash/Card/UPI):`);
+      if(paymentMethod) {
+        showToast(`Payment of ₹${totalPrice} done via ${paymentMethod}`,'success');
+      } else {
+        showToast('Payment cancelled','info');
+      }
+
+      purchaseForm.reset();
+    } else {
+      showToast('Purchase cancelled.','info');
+    }
+  });
+
+  const leaderboardData=[{society:'GreenVille',points:120},{society:'EcoTown',points:95},{society:'RecycleHub',points:80},{society:'CleanCity',points:70},{society:'WasteLess',points:50}];
+  const leaderboardContainer=document.getElementById('societyLeaderboard');
+  leaderboardData.forEach(entry=>{
+    const barWrapper=document.createElement('div'); barWrapper.className='soc-leaderboard-bar';
+    const bar=document.createElement('div'); bar.className='soc-bar'; bar.style.height=(entry.points*2)+'px'; bar.textContent=entry.points; bar.style.background=`hsl(${entry.points},60%,50%)`;
+    const label=document.createElement('div'); label.textContent=entry.society; label.style.marginTop='4px'; label.style.fontSize='0.9rem'; label.style.textAlign='center';
+    barWrapper.appendChild(bar); barWrapper.appendChild(label); leaderboardContainer.appendChild(barWrapper);
+  });
+
+  const chatBtn=document.getElementById('chatBotButton'), chatModal=document.getElementById('chatBotModal'), closeChat=document.getElementById('closeChatBot'), chatInput=document.getElementById('chatInput'), chatSendBtn=document.getElementById('chatSendBtn'), chatMessages=document.getElementById('chatMessages');
+  chatBtn.addEventListener('click',()=>chatModal.classList.toggle('active'));
+  closeChat.addEventListener('click',()=>chatModal.classList.remove('active'));
+  chatSendBtn.addEventListener('click',sendChat);
+  chatInput.addEventListener('keypress',e=>{if(e.key==='Enter')sendChat();});
+  function sendChat(){const msg=chatInput.value.trim(); if(!msg) return;
+    const userMsg=document.createElement('div'); userMsg.className='chat-message user'; userMsg.textContent=msg; chatMessages.appendChild(userMsg);
+    chatInput.value=''; chatMessages.scrollTop=chatMessages.scrollHeight;
+    setTimeout(()=>{const botMsg=document.createElement('div'); botMsg.className='chat-message bot'; botMsg.textContent="Thank you for your message! We'll respond soon."; chatMessages.appendChild(botMsg); chatMessages.scrollTop=chatMessages.scrollHeight;},500);
+  }
+});
+</script>
+</body>
+</html>

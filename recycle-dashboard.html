@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Recycler Dashboard</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #e6f2e6;
+      color: #333;
+    }
+    .sidebar {
+      width: 220px;
+      background: #4caf50;
+      color: white;
+      height: 100vh;
+      position: fixed;
+      transition: width 0.3s ease;
+    }
+    .sidebar h3 {
+      text-align: center;
+      margin: 20px 0;
+    }
+    .nav-link {
+      display: flex;
+      align-items: center;
+      padding: 12px 20px;
+      color: white;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+    .nav-link:hover {
+      background: #3a9e40;
+    }
+    .nav-link i {
+      margin-right: 12px;
+    }
+    .content {
+      margin-left: 220px;
+      padding: 20px;
+    }
+    .feature-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+    }
+    .feature-card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      padding: 20px;
+      text-align: center;
+      width: 220px;
+      transition: transform 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+    }
+    .feature-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+    .feature-card img {
+      width: 60px;
+      height: 60px;
+      margin-bottom: 12px;
+    }
+    .feature-label {
+      font-weight: bold;
+      color: #4caf50;
+    }
+    .section {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      display: none;
+    }
+    .section.active {
+      display: block;
+    }
+    footer {
+      text-align: center;
+      padding: 15px;
+      background: #4caf50;
+      color: white;
+      position: relative;
+    }
+    #chatBotButton {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 56px;
+      height: 56px;
+      cursor: pointer;
+      font-size: 28px;
+    }
+    #chatBotModal {
+      position: fixed;
+      bottom: 90px;
+      right: 20px;
+      width: 300px;
+      max-width: 90vw;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+      display: none;
+      flex-direction: column;
+      z-index: 1101;
+    }
+    #chatBotModal.active {
+      display: flex;
+    }
+    #chatBotHeader {
+      background: #4caf50;
+      color: white;
+      padding: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top-left-radius: 12px;
+      border-top-right-radius: 12px;
+    }
+    #chatMessages {
+      padding: 12px;
+      max-height: 250px;
+      overflow-y: auto;
+      font-size: 14px;
+    }
+    .chat-message.bot {
+      color: #3a9e40;
+      margin-bottom: 8px;
+    }
+    .chat-message.user {
+      text-align: right;
+      color: #555;
+      margin-bottom: 8px;
+    }
+    #chatInputContainer {
+      display: flex;
+      border-top: 1px solid #ddd;
+    }
+    #chatInput {
+      flex-grow: 1;
+      padding: 10px;
+      border: none;
+      border-bottom-left-radius: 12px;
+    }
+    #chatSendBtn {
+      background: #4caf50;
+      border: none;
+      color: white;
+      cursor: pointer;
+      padding: 0 16px;
+      font-weight: 600;
+      border-bottom-right-radius: 12px;
+    }
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1055;
+    }
+    .toast {
+      background: #4caf50;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      animation: fadeOut 4s forwards;
+    }
+    @keyframes fadeOut {
+      0% { opacity: 1; }
+      80% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+    @media (max-width: 700px) {
+      .sidebar {
+        width: 60px;
+      }
+      .content {
+        margin-left: 60px;
+      }
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    input[type="text"], input[type="number"], textarea {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    button.submit-btn {
+      width: 100%;
+      padding: 10px;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button.submit-btn:hover {
+      background-color: #3a9e40;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+    }
+    th {
+      background-color: #4caf50;
+      color: white;
+    }
+    canvas {
+      max-width: 100%;
+      margin-top: 20px;
+    }
+    .partner-list {
+      list-style: none;
+      padding: 0;
+    }
+    .partner-list li {
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="sidebar">
+  <h3>Recycler Dashboard</h3>
+  <a href="#" class="nav-link"><i>🏠</i> Dashboard</a>
+  <a href="#" class="nav-link"><i>📦</i> Inventory</a>
+  <a href="#" class="nav-link"><i>💼</i> Orders</a>
+  <a href="#" class="nav-link"><i>🔗</i> Partners</a>
+</div>
+
+<div class="content">
+  <h2>Welcome, Recycler!</h2>
+  <div class="feature-row">
+    <div class="feature-card" data-section="scrap">
+      <img src="https://img.icons8.com/ios-filled/100/recycling.png" alt="Scrap">
+      <div class="feature-label">Scrap Collection</div>
+    </div>
+    <div class="feature-card" data-section="inventory">
+      <img src="https://img.icons8.com/ios-filled/100/warehouse.png" alt="Inventory">
+      <div class="feature-label">Inventory</div>
+    </div>
+    <div class="feature-card" data-section="orders">
+      <img src="https://img.icons8.com/ios-filled/100/sell.png" alt="Orders">
+      <div class="feature-label">Orders</div>
+    </div>
+    <div class="feature-card" data-section="partners">
+      <img src="https://img.icons8.com/ios-filled/100/handshake.png" alt="Partners">
+      <div class="feature-label">Partners</div>
+    </div>
+  </div>
+
+  <!-- Scrap Collection Section -->
+  <div id="scrap" class="section">
+    <h3>Scrap Collection</h3>
+    <form id="scrapForm">
+      <div class="form-group">
+        <input type="text" id="scrapType" placeholder="Type of Scrap" required />
+      </div>
+      <div class="form-group">
+        <input type="number" id="quantity" placeholder="Quantity (kg)" required />
+      </div>
+      <div class="form-group">
+        <textarea id="notes" placeholder="Additional Notes"></textarea>
+      </div>
+      <button type="submit" class="submit-btn">Add Scrap</button>
+    </form>
+    <canvas id="wasteChart"></canvas>
+  </div>
+
+  <!-- Inventory Section -->
+  <div id="inventory" class="section">
+    <h3>Inventory</h3>
+    <h4>Scrap Inventory</h4>
+    <table>
+      <thead>
+        <tr>
+          <th>Scrap Type</th>
+          <th>Quantity (kg)</th>
+        </tr>
+      </thead>
+      <tbody id="inventoryTableBody">
+        <tr><td>Paper</td><td>120</td></tr>
+        <tr><td>Plastic</td><td>75</td></tr>
+        <tr><td>Metal</td><td>50</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Byproducts from Waste</h4>
+    <table>
+      <thead>
+        <tr>
+          <th>Byproduct</th>
+          <th>Source Scrap</th>
+          <th>Available Quantity (kg)</th>
+        </tr>
+      </thead>
+      <tbody id="byproductsTableBody">
+        <tr><td>Compost</td><td>Organic Waste</td><td id="compostQty">200</td></tr>
+        <tr><td>Recycled Plastic Pellets</td><td>Plastic Waste</td><td id="plasticQty">50</td></tr>
+        <tr><td>Metal Ingots</td><td>Metal Scrap</td><td id="metalQty">20</td></tr>
+        <tr><td>Paper Pulp</td><td>Paper Waste</td><td id="paperQty">100</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Orders Section -->
+  <div id="orders" class="section">
+    <h3>Orders</h3>
+    <ul id="ordersList">
+      <li>Order #101 – Paper – 50kg – Pending</li>
+      <li>Order #102 – Plastic – 30kg – Completed</li>
+      <li>Order #103 – Metal – 20kg – Pending</li>
+    </ul>
+  </div>
+
+  <!-- Partners Section -->
+  <div id="partners" class="section">
+    <h3>Partners</h3>
+    <ul class="partner-list">
+      <li><strong>Green Recycling Ltd.</strong><br>Email: info@greenrecycle.com</li>
+      <li><strong>Eco Partners</strong><br>Email: contact@ecopartners.org</li>
+      <li><strong>Waste Solutions</strong><br>Email: support@wastesolutions.net</li>
+    </ul>
+  </div>
+</div>
+
+<footer>&copy; 2025 Clean India Waste Management</footer>
+
+<button id="chatBotButton">💬</button>
+
+<div id="chatBotModal">
+  <div id="chatBotHeader">
+    <span>Chat Support</span>
+    <button onclick="toggleChat()">✖</button>
+  </div>
+  <div id="chatMessages"></div>
+  <div id="chatInputContainer">
+    <input type="text" id="chatInput" placeholder="Type a message..."/>
+    <button id="chatSendBtn">Send</button>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  function showToast(message) {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = message;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
+  }
+
+  const chatBotButton = document.getElementById('chatBotButton');
+  const chatBotModal = document.getElementById('chatBotModal');
+  const chatCloseBtn = chatBotModal.querySelector('button');
+  const chatMessages = document.getElementById('chatMessages');
+  const chatInput = document.getElementById('chatInput');
+  const chatSendBtn = document.getElementById('chatSendBtn');
+  const featureCards = document.querySelectorAll('.feature-card');
+  const sections = document.querySelectorAll('.section');
+  const inventoryTableBody = document.getElementById('inventoryTableBody');
+  const ordersList = document.getElementById('ordersList');
+  const byproductsTableBody = document.getElementById('byproductsTableBody');
+  const compostQty = document.getElementById('compostQty');
+  const plasticQty = document.getElementById('plasticQty');
+  const metalQty = document.getElementById('metalQty');
+  const paperQty = document.getElementById('paperQty');
+
+  function toggleChat() {
+    chatBotModal.classList.toggle('active');
+  }
+
+  chatBotButton.addEventListener('click', toggleChat);
+  chatCloseBtn.addEventListener('click', toggleChat);
+
+  chatSendBtn.addEventListener('click', sendMessage);
+  chatInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  function sendMessage() {
+    const msg = chatInput.value.trim();
+    if (!msg) return;
+    addChatMessage(msg, 'user');
+    chatInput.value = '';
+    setTimeout(() => addChatMessage("This is a support message.", 'bot'), 500);
+  }
+
+  function addChatMessage(message, sender) {
+    const div = document.createElement('div');
+    div.className = 'chat-message ' + sender;
+    div.textContent = message;
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  featureCards.forEach(card => {
+    card.addEventListener('click', () => {
+      const target = card.getAttribute('data-section');
+      sections.forEach(sec => sec.classList.remove('active'));
+      document.getElementById(target).classList.add('active');
+      showToast(card.querySelector('.feature-label').textContent + ' opened');
+    });
+  });
+
+  // Scrap Collection form and Chart.js setup
+  const scrapForm = document.getElementById('scrapForm');
+  const scrapType = document.getElementById('scrapType');
+  const quantity = document.getElementById('quantity');
+  const notes = document.getElementById('notes');
+  const ctx = document.getElementById('wasteChart').getContext('2d');
+
+  const chartData = {
+    labels: [],
+    datasets: [{
+      label: 'Scrap Quantity (kg)',
+      data: [],
+      backgroundColor: 'rgba(76, 175, 80, 0.5)',
+      borderColor: 'rgba(76, 175, 80, 1)',
+      borderWidth: 1
+    }]
+  };
+
+  const wasteChart = new Chart(ctx, {
+    type: 'bar',
+    data: chartData,
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+
+  scrapForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const type = scrapType.value.trim();
+    const qty = parseFloat(quantity.value);
+    if (!type || isNaN(qty) || qty <= 0) {
+      showToast('Please enter valid scrap type and quantity');
+      return;
+    }
+    chartData.labels.push(type);
+    chartData.datasets[0].data.push(qty);
+    wasteChart.update();
+    showToast('Scrap added');
+
+    // Update Inventory table
+    let found = false;
+    for (let row of inventoryTableBody.rows) {
+      if (row.cells[0].textContent === type) {
+        row.cells[1].textContent = parseFloat(row.cells[1].textContent) + qty;
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      const row = inventoryTableBody.insertRow();
+      row.insertCell(0).textContent = type;
+      row.insertCell(1).textContent = qty;
+    }
+
+    // Update Orders list
+    const li = document.createElement('li');
+    li.textContent = `Order #${Math.floor(Math.random()*1000)} – ${type} – ${qty}kg – Pending`;
+    ordersList.appendChild(li);
+
+    // Update Byproduct quantities if applicable
+    if (type.toLowerCase().includes('plastic')) {
+      plasticQty.textContent = parseFloat(plasticQty.textContent) + qty * 0.4;
+    }
+    if (type.toLowerCase().includes('metal')) {
+      metalQty.textContent = parseFloat(metalQty.textContent) + qty * 0.3;
+    }
+    if (type.toLowerCase().includes('paper')) {
+      paperQty.textContent = parseFloat(paperQty.textContent) + qty * 0.5;
+    }
+    if (type.toLowerCase().includes('organic') || type.toLowerCase().includes('food')) {
+      compostQty.textContent = parseFloat(compostQty.textContent) + qty * 0.6;
+    }
+
+    scrapType.value = '';
+    quantity.value = '';
+    notes.value = '';
+  });
+</script>
+
+</body>
+</html>

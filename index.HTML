@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f0f4f8;
+      color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      background: #fff;
+      border-radius: 15px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      padding: 30px;
+      width: 420px;
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 20px;
+      color: #2c7a7b;
+    }
+    .roles-box {
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 20px;
+    }
+    .roles {
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
+    }
+    .role {
+      cursor: pointer;
+      transition: transform 0.2s;
+      margin: 10px;
+      width: 90px;
+      text-align: center;
+    }
+    .role img {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      background: #e6f4ea;
+      padding: 5px;
+      transition: 0.3s;
+    }
+    .role.selected img {
+      border-color: #2c7a7b;
+      background: #d1f0d1;
+    }
+    .role p {
+      margin-top: 5px;
+      font-size: 14px;
+    }
+    .role:hover {
+      transform: scale(1.1);
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+    }
+    select, input {
+      padding: 10px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    button {
+      padding: 10px;
+      margin-top: 10px;
+      border: none;
+      background-color: #90ee90; /* Light green */
+      color: white;
+      font-size: 18px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #2c7a7b;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Clean India Waste Management</h1>
+    <form id="loginForm">
+      <!-- Role dropdown -->
+      <select id="roleSelect" required>
+        <option value="" disabled selected>Select Role</option>
+        <option value="Citizen / Waste Generator">Citizen / Waste Generator</option>
+        <option value="Waste Worker / Collection Staff">Waste Worker / Collection Staff</option>
+        <option value="ULB / Gram Panchayat Officials">ULB / Gram Panchayat Officials</option>
+        <option value="Green Champion (Community Monitor)">Green Champion (Community Monitor)</option>
+        <option value="Recycling Partners / Scrap Shops">Recycling Partners / Scrap Shops</option>
+      </select>
+      <input type="hidden" id="role" name="role">
+
+      <!-- Role images -->
+      <div class="roles-box">
+        <div class="roles" id="roles">
+          <div class="role" data-role="Citizen / Waste Generator">
+            <img src="https://img.icons8.com/ios-filled/100/user.png" alt="Citizen">
+            <p>Citizen</p>
+          </div>
+          <div class="role" data-role="Waste Worker / Collection Staff">
+            <img src="https://img.icons8.com/ios-filled/100/garbage-truck.png" alt="Worker">
+            <p>Waste Worker</p>
+          </div>
+          <div class="role" data-role="ULB / Gram Panchayat Officials">
+            <img src="https://img.icons8.com/ios-filled/100/city-buildings.png" alt="ULB">
+            <p>ULB</p>
+          </div>
+          <div class="role" data-role="Green Champion (Community Monitor)">
+            <img src="https://img.icons8.com/ios-filled/100/medal.png" alt="Champion">
+            <p>Champion</p>
+          </div>
+          <div class="role" data-role="Recycling Partners / Scrap Shops">
+            <img src="https://img.icons8.com/ios-filled/100/recycling.png" alt="Recycler">
+            <p>Recycler</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Username & Password -->
+      <input type="text" id="username" placeholder="Username" required>
+      <input type="password" id="password" placeholder="Password" required>
+
+      <!-- Submit -->
+      <button type="submit">Login</button>
+    </form>
+  </div>
+
+  <script>
+    const roles = document.querySelectorAll('.role');
+    const hiddenRole = document.getElementById('role');
+    const roleSelect = document.getElementById('roleSelect');
+    const loginForm = document.getElementById('loginForm');
+
+    // Select Role
+    function selectRole(roleValue) {
+      roles.forEach(r => {
+        r.classList.toggle('selected', r.dataset.role === roleValue);
+      });
+      hiddenRole.value = roleValue;
+      roleSelect.value = roleValue;
+    }
+
+    // Handle image clicks
+    roles.forEach(role => {
+      role.addEventListener('click', () => {
+        selectRole(role.dataset.role);
+      });
+    });
+
+    // Handle dropdown change
+    roleSelect.addEventListener('change', (e) => {
+      selectRole(e.target.value);
+    });
+
+    // Handle form submit
+    loginForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      if (!hiddenRole.value) {
+        alert('Please select a role!');
+        return;
+      }
+
+      // Redirect based on role
+      switch (hiddenRole.value) {
+        case "Citizen / Waste Generator":
+          window.location.href = "citizen-dashboard.html";
+          break;
+        case "Waste Worker / Collection Staff":
+          window.location.href = "WORKER.HTML";
+          break;
+        case "ULB / Gram Panchayat Officials":
+          window.location.href = "ulb-dashboard.html";
+          break;
+        case "Green Champion (Community Monitor)":
+          alert("Green Champion dashboard is under development.");
+          break;
+        case "Recycling Partners / Scrap Shops":
+          window.location.href = "recycle-dashboard.html";
+          break;
+        default:
+          alert(`No dashboard configured for ${hiddenRole.value}`);
+      }
+    });
+  </script>
+</body>
+</html>
